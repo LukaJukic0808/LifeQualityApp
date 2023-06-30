@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Life Quality App</string>
+    <string name="web_client_id">595320294479-7obcohtmhgf853jd6hvk9glvuisskda3.apps.googleusercontent.com</string>
+    <string name="sign_in_with_google">Prijava Google računom</string>
+    <string name="sign_out">Odjava</string>
+    <string name="sign_in_success">Prijavljeni ste</string>
+    <string name="sign_out_success">Odjavljeni ste</string>
+    <string name="manual_input">Ručni unos</string>
+    <string name="start_measuring">Započni mjerenje</string>
+    <string name="stop_measuring">Završi mjerenje</string>
+    <string name="choose_noise_level">"Izaberite razinu buke u svojoj okolini"</string>
+    <string name="low">"Nisko"</string>
+    <string name="medium">"Umjereno"</string>
+    <string name="high">"Visoko"</string>
+    <string name="send">"Pošalji odgovor"</string>
+
+
+</resources>
