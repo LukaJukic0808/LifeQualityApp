@@ -1,6 +1,5 @@
 package hr.ferit.lifequalityapp.ui.components
 
-import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -24,17 +22,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import hr.ferit.lifequalityapp.R
 import hr.ferit.lifequalityapp.ui.theme.RaleWay
-import hr.ferit.lifequalityapp.ui.viewmodels.RadioButtonViewModel
 
 @Composable
 fun ManualInputScreenBody(
-    radioButtonViewModel: RadioButtonViewModel,
-    navController: NavController
+    selectedButton: Int,
+    onRadioButtonClick: (index : Int) -> Unit,
+    onSendAnswerClick: () -> Unit,
 ){
-    val context = LocalContext.current
     val labels = listOf(
         stringResource(R.string.low),
         stringResource(R.string.medium),
@@ -57,19 +53,14 @@ fun ManualInputScreenBody(
         labels.forEach{
                 label ->
             if(label==labels[0])
-                NoiseRadioButton(label, labels.indexOf(label), radioButtonViewModel)
+                NoiseRadioButton(label, labels.indexOf(label), selectedButton, onRadioButtonClick)
             else
-                NoiseRadioButton(label, labels.indexOf(label), radioButtonViewModel)
+                NoiseRadioButton(label, labels.indexOf(label), selectedButton, onRadioButtonClick)
         }
         Spacer(Modifier.height(40.dp))
         Button(
             onClick = {
-                Toast.makeText(
-                    context,
-                    "Test: Selected button is ${radioButtonViewModel.selectedButton + 1}",
-                    Toast.LENGTH_SHORT )
-                    .show()
-                navController.popBackStack()
+                onSendAnswerClick.invoke()
             },
             shape = RoundedCornerShape(40.dp),
             modifier = Modifier

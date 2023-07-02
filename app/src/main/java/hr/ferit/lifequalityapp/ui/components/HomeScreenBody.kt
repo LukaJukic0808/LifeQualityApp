@@ -22,20 +22,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import hr.ferit.lifequalityapp.R
-import hr.ferit.lifequalityapp.ui.navigation.Screen
 import hr.ferit.lifequalityapp.ui.theme.RaleWay
-import hr.ferit.lifequalityapp.ui.viewmodels.ServiceToggleViewModel
 
 @Composable
 fun HomeScreenBody(
-    navController: NavController,
-    serviceToggleViewModel : ServiceToggleViewModel
+    onManualInputClick: () -> Unit,
+    onToggleService: () -> Unit,
+    isServiceRunning : Boolean
 ){
-    val isServiceRunning = serviceToggleViewModel.isServiceRunning
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -43,7 +38,7 @@ fun HomeScreenBody(
         horizontalAlignment = Alignment.CenterHorizontally
     ){
         Button(
-            onClick = { navController.navigate(Screen.ManualInputScreen.route) },
+            onClick = { onManualInputClick.invoke() },
             shape = RoundedCornerShape(40.dp),
             modifier = Modifier
                 .size(
@@ -69,7 +64,7 @@ fun HomeScreenBody(
         Spacer(Modifier.height(150.dp))
         Button(
             onClick = {
-                serviceToggleViewModel.toggleService()
+                onToggleService.invoke()
             },
             shape = RoundedCornerShape(40.dp),
             modifier = Modifier

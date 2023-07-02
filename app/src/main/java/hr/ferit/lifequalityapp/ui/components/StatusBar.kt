@@ -24,19 +24,16 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import hr.ferit.lifequalityapp.R
 import hr.ferit.lifequalityapp.ui.authentication.UserData
-import hr.ferit.lifequalityapp.ui.viewmodels.TokensViewModel
 
 @Composable
 fun StatusBar(
     userData: UserData?,
     onSignOut: () -> Unit,
-    tokensViewModel : TokensViewModel
+    tokens: Int
 ){
-    val tokens = tokensViewModel.tokens
 
     Row(
         modifier = Modifier.fillMaxWidth(),

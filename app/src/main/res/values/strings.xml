@@ -13,6 +13,9 @@
     <string name="medium">"Umjereno"</string>
     <string name="high">"Visoko"</string>
     <string name="send">"Pošalji odgovor"</string>
+    <string name="network_error">"Spojite se na internet i ponovno pokrenite aplikaciju"</string>
+    <string name="answer_stored">"Vaš odgovor je pohranjen, dobiveni bodovi: %1$d"</string>
+    <string name="answer_not_stored">"Pogreška pri pohrani odgovora, molimo pokušajte kasnije"</string>
 
 
 </resources>

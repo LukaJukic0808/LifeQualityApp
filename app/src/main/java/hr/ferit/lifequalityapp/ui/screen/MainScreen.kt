@@ -11,16 +11,17 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.auth.api.identity.Identity
 import hr.ferit.lifequalityapp.R
 import hr.ferit.lifequalityapp.ui.authentication.GoogleAuthUiClient
+import hr.ferit.lifequalityapp.ui.components.NetworkChecker
 import hr.ferit.lifequalityapp.ui.navigation.Screen
 import hr.ferit.lifequalityapp.ui.viewmodels.SignInViewModel
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
@@ -37,8 +38,8 @@ fun MainScreen() {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Screen.SignInScreen.route) {
         composable(Screen.SignInScreen.route) {
-            val viewModel = viewModel<SignInViewModel>()
-            val state by viewModel.state.collectAsStateWithLifecycle()
+            val signInViewModel : SignInViewModel = koinViewModel()
+            val state by signInViewModel.state.collectAsStateWithLifecycle()
             val coroutineScope = rememberCoroutineScope()
 
             LaunchedEffect(key1 = Unit) {
@@ -55,7 +56,7 @@ fun MainScreen() {
                             val signInResult = googleAuthUiClient.signInWithIntent(
                                 intent = result.data ?: return@launch
                             )
-                            viewModel.onSignInResult(signInResult)
+                            signInViewModel.onSignInResult(signInResult)
                         }
                     }
                 }
@@ -69,7 +70,7 @@ fun MainScreen() {
                         Toast.LENGTH_SHORT
                     ).show()
                     navController.navigate(Screen.HomeScreen.route)
-                    viewModel.resetState()
+                    signInViewModel.resetState()
                 }
 
             }
@@ -77,13 +78,22 @@ fun MainScreen() {
             SignInScreen(
                 state = state,
                 onSignInClick = {
-                    coroutineScope.launch {
-                        val signInIntentSender = googleAuthUiClient.signIn()
-                        launcher.launch(
-                            IntentSenderRequest.Builder(
-                                signInIntentSender ?: return@launch
-                            ).build()
-                        )
+                    if(!NetworkChecker.isNetworkAvailable(applicationContext)){
+                        Toast.makeText(
+                            applicationContext,
+                            R.string.network_error,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    else {
+                        coroutineScope.launch {
+                            val signInIntentSender = googleAuthUiClient.signIn()
+                            launcher.launch(
+                                IntentSenderRequest.Builder(
+                                    signInIntentSender ?: return@launch
+                                ).build()
+                            )
+                        }
                     }
                 }
             )

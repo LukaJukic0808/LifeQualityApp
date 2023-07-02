@@ -12,17 +12,15 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import hr.ferit.lifequalityapp.ui.theme.RaleWay
-import hr.ferit.lifequalityapp.ui.viewmodels.RadioButtonViewModel
 
 @Composable
 fun NoiseRadioButton(
     label: String,
     index: Int,
-    radioButtonViewModel: RadioButtonViewModel
+    selectedButton : Int,
+    onRadioButtonClick: (index: Int) -> Unit,
 ){
-    val selectedButton = radioButtonViewModel.selectedButton
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -30,7 +28,7 @@ fun NoiseRadioButton(
     ) {
         RadioButton(
             selected = index==selectedButton,
-            onClick = { radioButtonViewModel.selectButton(index)}
+            onClick = { onRadioButtonClick.invoke(index) }
         )
         Text(
             text = label,
