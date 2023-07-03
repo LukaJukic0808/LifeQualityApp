@@ -5,6 +5,7 @@ import hr.ferit.lifequalityapp.sensing.sensors.HumiditySensor
 import hr.ferit.lifequalityapp.sensing.sensors.Thermometer
 import hr.ferit.lifequalityapp.ui.viewmodels.BarometerViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.HumiditySensorViewModel
+import hr.ferit.lifequalityapp.ui.viewmodels.PermissionViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.RadioButtonViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.ServiceToggleViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.SignInViewModel
@@ -27,5 +28,6 @@ val viewModelModule = module {
     viewModel<RadioButtonViewModel> { RadioButtonViewModel() }
     viewModel<ServiceToggleViewModel> { ServiceToggleViewModel() }
     viewModel<TokensViewModel> { TokensViewModel() }
-    viewModel<SignInViewModel> {SignInViewModel()}
+    viewModel<SignInViewModel> { SignInViewModel() }
+    viewModel<PermissionViewModel> { PermissionViewModel() }
 }

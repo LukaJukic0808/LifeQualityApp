@@ -16,6 +16,13 @@
     <string name="network_error">"Spojite se na internet i ponovno pokrenite aplikaciju"</string>
     <string name="answer_stored">"Vaš odgovor je pohranjen, dobiveni bodovi: %1$d"</string>
     <string name="answer_not_stored">"Pogreška pri pohrani odgovora, molimo pokušajte kasnije"</string>
-
-
+    <string name="permission_required">"Potrebno dopuštenje"</string>
+    <string name="ok">"U redu"</string>
+    <string name="grant_permission">"Odobri dopuštenje"</string>
+    <string name="location_permanently_declined">"Trajno ste odbili dopuštenje za pristup točnoj lokaciji. Možete otići u postavke aplikacije kako biste ga odobrili."</string>
+    <string name="location_access_needed">"Aplikacija treba pristup preciznoj lokaciji kako bi se odgovor uspješno spremio."</string>
+    <string name="microphone_permanently_declined">"Trajno ste odbili dopuštenje za pristup mikrofonu. Možete otići u postavke aplikacije kako biste ga odobrili."</string>
+    <string name="microphone_access_needed">"Aplikacija treba pristup mikrofonu kako bi mjerenje bilo uspješno."</string>
+    <string name="coarse_location_permanently_declined">"Trajno ste odbili dopuštenje za pristup približnoj lokaciji. Možete otići u postavke aplikacije kako biste ga odobrili."</string>
+    <string name="coarse_location_access_needed">"Aplikacija treba pristup približnoj lokaciji kako bi se odgovor uspješno spremio."</string>
 </resources>

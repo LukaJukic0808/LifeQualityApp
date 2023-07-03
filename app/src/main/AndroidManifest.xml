@@ -3,9 +3,13 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-feature android:name="android.hardware.sensor.ambient_temperature"  android:required="false"/>
     <uses-feature android:name="android.hardware.sensor.barometer"  android:required="false"/>
     <uses-feature android:name="android.hardware.sensor.relative_humidity"  android:required="false"/>
+    <uses-feature android:name="android.hardware.microphone"  android:required="true"/>
 
     <application
         android:name=".LifeQualityApp"
