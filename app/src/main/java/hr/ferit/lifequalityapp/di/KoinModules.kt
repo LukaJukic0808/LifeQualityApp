@@ -1,5 +1,7 @@
 package hr.ferit.lifequalityapp.di
 
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import hr.ferit.lifequalityapp.sensing.sensors.Barometer
 import hr.ferit.lifequalityapp.sensing.sensors.HumiditySensor
 import hr.ferit.lifequalityapp.sensing.sensors.Thermometer
@@ -30,4 +32,8 @@ val viewModelModule = module {
     viewModel<TokensViewModel> { TokensViewModel() }
     viewModel<SignInViewModel> { SignInViewModel() }
     viewModel<PermissionViewModel> { PermissionViewModel() }
+}
+
+val locationClientModule = module{
+    factory<FusedLocationProviderClient> { LocationServices.getFusedLocationProviderClient(androidContext()) }
 }

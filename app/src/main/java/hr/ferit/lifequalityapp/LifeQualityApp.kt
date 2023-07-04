@@ -1,6 +1,7 @@
 package hr.ferit.lifequalityapp
 
 import android.app.Application
+import hr.ferit.lifequalityapp.di.locationClientModule
 import hr.ferit.lifequalityapp.di.sensorsModule
 import hr.ferit.lifequalityapp.di.viewModelModule
 import org.koin.android.ext.koin.androidContext
@@ -11,7 +12,7 @@ class LifeQualityApp : Application(){
         super.onCreate()
         startKoin {
             androidContext(this@LifeQualityApp)
-            modules(viewModelModule, sensorsModule)
+            modules(viewModelModule, sensorsModule, locationClientModule)
         }
     }
 }

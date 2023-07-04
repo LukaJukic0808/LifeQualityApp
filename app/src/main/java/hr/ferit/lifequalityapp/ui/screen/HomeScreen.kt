@@ -4,7 +4,6 @@ package hr.ferit.lifequalityapp.ui.screen
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
@@ -19,16 +18,16 @@ import hr.ferit.lifequalityapp.R
 import hr.ferit.lifequalityapp.ui.authentication.UserData
 import androidx.compose.ui.res.colorResource
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
-import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
-import hr.ferit.lifequalityapp.ui.components.CoarseLocationPermissionTextProvider
+import hr.ferit.lifequalityapp.ui.permissions.CoarseLocationPermissionTextProvider
 import hr.ferit.lifequalityapp.ui.components.HomeScreenBody
-import hr.ferit.lifequalityapp.ui.components.FineLocationPermissionTextProvider
-import hr.ferit.lifequalityapp.ui.components.MicrophonePermissionTextProvider
+import hr.ferit.lifequalityapp.ui.permissions.FineLocationPermissionTextProvider
+import hr.ferit.lifequalityapp.ui.permissions.MicrophonePermissionTextProvider
 import hr.ferit.lifequalityapp.ui.components.NetworkChecker
 import hr.ferit.lifequalityapp.ui.components.PermissionDialog
 import hr.ferit.lifequalityapp.ui.components.StatusBar
 import hr.ferit.lifequalityapp.ui.navigation.Screen
+import hr.ferit.lifequalityapp.ui.permissions.hasLocationAndRecordAudioPermission
 import hr.ferit.lifequalityapp.ui.viewmodels.PermissionViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.ServiceToggleViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.TokensViewModel
@@ -46,6 +45,7 @@ fun HomeScreen(
     val context = LocalContext.current
     val permissionsToRequest = arrayOf(
         Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.RECORD_AUDIO
     )
 
@@ -85,13 +85,7 @@ fun HomeScreen(
                         ).show()
                     }
                     else {
-                        if((ContextCompat.checkSelfPermission(context, permissionsToRequest[0])
-                            == PackageManager.PERMISSION_GRANTED ||
-                            ContextCompat.checkSelfPermission(context, permissionsToRequest[1])
-                            == PackageManager.PERMISSION_GRANTED) &&
-                            ContextCompat.checkSelfPermission(context, permissionsToRequest[2])
-                            == PackageManager.PERMISSION_GRANTED
-                        ) {
+                        if(context.hasLocationAndRecordAudioPermission()) {
                             serviceToggleViewModel.toggleService()
                         } else{
                             multiplePermissionResultLauncher.launch(permissionsToRequest)

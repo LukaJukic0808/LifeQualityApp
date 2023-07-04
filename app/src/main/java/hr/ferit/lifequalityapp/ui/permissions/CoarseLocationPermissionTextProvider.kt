@@ -1,4 +1,4 @@
-package hr.ferit.lifequalityapp.ui.components
+package hr.ferit.lifequalityapp.ui.permissions
 
 import android.content.Context
 import hr.ferit.lifequalityapp.R

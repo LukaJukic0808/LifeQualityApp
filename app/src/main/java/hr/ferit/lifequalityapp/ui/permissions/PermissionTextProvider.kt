@@ -1,4 +1,4 @@
-package hr.ferit.lifequalityapp.ui.components
+package hr.ferit.lifequalityapp.ui.permissions
 
 
 interface PermissionTextProvider {

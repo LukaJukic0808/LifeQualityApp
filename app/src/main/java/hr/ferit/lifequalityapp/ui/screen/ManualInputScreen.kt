@@ -1,9 +1,12 @@
 package hr.ferit.lifequalityapp.ui.screen
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
@@ -20,28 +23,32 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationToken
+import com.google.android.gms.tasks.CancellationTokenSource
+import com.google.android.gms.tasks.OnTokenCanceledListener
 import hr.ferit.lifequalityapp.R
 import hr.ferit.lifequalityapp.ui.authentication.UserData
-import hr.ferit.lifequalityapp.ui.authentication.UserToken
-import hr.ferit.lifequalityapp.ui.components.FineLocationPermissionTextProvider
+import hr.ferit.lifequalityapp.ui.permissions.FineLocationPermissionTextProvider
 import hr.ferit.lifequalityapp.ui.components.ManualInputScreenBody
 import hr.ferit.lifequalityapp.ui.components.NetworkChecker
 import hr.ferit.lifequalityapp.ui.components.PermissionDialog
 import hr.ferit.lifequalityapp.ui.components.StatusBar
-import hr.ferit.lifequalityapp.ui.measurements.ManualInput
+import hr.ferit.lifequalityapp.ui.measurements.saveManualInput
+import hr.ferit.lifequalityapp.ui.permissions.hasLocationPermission
 import hr.ferit.lifequalityapp.ui.viewmodels.BarometerViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.HumiditySensorViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.PermissionViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.RadioButtonViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.ThermometerViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.TokensViewModel
+import org.koin.androidx.compose.get
 import org.koin.androidx.compose.koinViewModel
 
+@SuppressLint("MissingPermission")
 @Composable
 fun ManualInputScreen(
     userData: UserData?,
@@ -52,10 +59,10 @@ fun ManualInputScreen(
     thermometerViewModel: ThermometerViewModel = koinViewModel(),
     humiditySensorViewModel: HumiditySensorViewModel = koinViewModel(),
     barometerViewModel: BarometerViewModel = koinViewModel(),
-    permissionViewModel: PermissionViewModel = koinViewModel()
+    permissionViewModel: PermissionViewModel = koinViewModel(),
+    locationClient: FusedLocationProviderClient = get()
 ) {
     val context = LocalContext.current
-    val db = Firebase.firestore
     val temperature by thermometerViewModel.temperature.collectAsStateWithLifecycle()
     val pressure by barometerViewModel.pressure.collectAsStateWithLifecycle()
     val relativeHumidity by humiditySensorViewModel.relativeHumidity.collectAsStateWithLifecycle()
@@ -95,55 +102,55 @@ fun ManualInputScreen(
                             Toast.LENGTH_SHORT
                         ).show()
                     } else {
-                        if(ContextCompat.checkSelfPermission(context, permissionToRequest)
-                            == PackageManager.PERMISSION_GRANTED ||
-                            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
-                            == PackageManager.PERMISSION_GRANTED
-                        ) {
-                            val manualInput = ManualInput()
-                            var addedTokens = 0
+                        if (context.hasLocationPermission()) {
+                            val locationManager =
+                                context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                            val isGpsEnabled =
+                                locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                            val isNetworkEnabled =
+                                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+                            if (!isGpsEnabled && !isNetworkEnabled) {
+                                Toast.makeText(
+                                    context,
+                                    R.string.turn_on_location_service,
+                                    Toast.LENGTH_SHORT
+                                )
+                                    .show()
+                            } else {
+                                locationClient.getCurrentLocation(
+                                    Priority.PRIORITY_HIGH_ACCURACY,
+                                    object : CancellationToken() {
+                                        override fun onCanceledRequested(p0: OnTokenCanceledListener) =
+                                            CancellationTokenSource().token
 
-                            manualInput.noiseLevel = radioButtonViewModel.selectedButton
-                            addedTokens += 10
-
-                            if (thermometerViewModel.doesSensorExist) {
-                                manualInput.temperature = temperature
-                                addedTokens += 5
-                            }
-
-                            if (barometerViewModel.doesSensorExist) {
-                                manualInput.pressure = pressure
-                                addedTokens += 5
-                            }
-
-                            if (humiditySensorViewModel.doesSensorExist) {
-                                manualInput.relativeHumidity = relativeHumidity
-                                addedTokens += 5
-                            }
-
-                            db.collection("manualInputs").add(manualInput)
-                                .addOnSuccessListener {
-                                    db.collection("users")
-                                        .document(userData?.userId!!)
-                                        .set(UserToken(tokensViewModel.tokens + addedTokens))
-                                    Toast.makeText(
-                                        context,
-                                        String.format(
-                                            context.resources.getString(R.string.answer_stored),
-                                            addedTokens
-                                        ),
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                        override fun isCancellationRequested() = false
+                                    })
+                                    .addOnSuccessListener { location: Location? ->
+                                        if (location == null)
+                                            Toast.makeText(
+                                                context,
+                                                R.string.location_unreachable,
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        else {
+                                            saveManualInput(
+                                                context = context,
+                                                userId = userData?.userId!!,
+                                                location = location,
+                                                noiseLevel = radioButtonViewModel.selectedButton,
+                                                doesThermometerExist = thermometerViewModel.doesSensorExist,
+                                                doesBarometerExist = barometerViewModel.doesSensorExist,
+                                                doesHumiditySensorExist = humiditySensorViewModel.doesSensorExist,
+                                                temperature = temperature,
+                                                pressure = pressure,
+                                                relativeHumidity = relativeHumidity,
+                                                currentTokenBalance = tokensViewModel.tokens
+                                                )
+                                            navController.popBackStack()
+                                        }
                                 }
-                                .addOnFailureListener {
-                                    Toast.makeText(
-                                        context,
-                                        R.string.answer_not_stored,
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            navController.popBackStack()
-                        } else{
+                            }
+                        } else {
                             locationPermissionResultLauncher.launch(permissionToRequest)
                         }
                     }
