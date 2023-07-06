@@ -30,10 +30,9 @@ class AutomaticMeasurementWorker(
 ) : CoroutineWorker(context, workerParams) {
 
     private val locationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
-
+    private val userId = inputData.getString("user_id")
     override suspend fun doWork(): Result {
         // startForegroundService()
-        val userId = inputData.getString("user_id")
         if (context.hasLocationPermission()) {
             val locationManager =
                 context.getSystemService(Context.LOCATION_SERVICE) as LocationManager

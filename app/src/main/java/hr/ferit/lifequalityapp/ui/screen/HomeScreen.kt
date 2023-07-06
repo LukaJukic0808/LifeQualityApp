@@ -21,6 +21,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.navigation.NavController
 import androidx.work.Constraints
@@ -53,12 +54,12 @@ fun HomeScreen(
     userData: UserData?,
     onSignOut: () -> Unit,
     navController: NavController,
+    workManager: WorkManager,
     tokensViewModel: TokensViewModel = koinViewModel(),
     serviceToggleViewModel: ServiceToggleViewModel = koinViewModel(),
     permissionViewModel: PermissionViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
-    val workManager = WorkManager.getInstance(context)
     val measurementRequest =
         PeriodicWorkRequestBuilder<AutomaticMeasurementWorker>(Duration.ofMinutes(15))
             .setConstraints(
@@ -69,22 +70,22 @@ fun HomeScreen(
                     .build(),
             )
             .setInputData(
-                Data.Builder().putString("user_id", userData?.userId!!).build(),
+                Data.Builder().putString("user_id", userData?.userId).build(),
             )
             .setInitialDelay(Duration.ofSeconds(10))
             .build()
 
     val workInfo = workManager
-        .getWorkInfosForUniqueWorkLiveData("measure")
+        .getWorkInfosForUniqueWorkLiveData(stringResource(R.string.uniqueWorkName))
         .observeAsState()
         .value
 
     serviceToggleViewModel.isMyServiceRunning(workInfo)
 
     val permissionsToRequest = arrayOf(
+        Manifest.permission.RECORD_AUDIO,
         Manifest.permission.ACCESS_COARSE_LOCATION,
         Manifest.permission.ACCESS_FINE_LOCATION,
-        Manifest.permission.RECORD_AUDIO,
     )
 
     // permission logic
@@ -138,7 +139,7 @@ fun HomeScreen(
                             } else if (!serviceToggleViewModel.isServiceRunning) {
                                 workManager
                                     .enqueueUniquePeriodicWork(
-                                        "measure",
+                                        context.resources.getString(R.string.uniqueWorkName),
                                         ExistingPeriodicWorkPolicy.KEEP,
                                         measurementRequest,
                                     )

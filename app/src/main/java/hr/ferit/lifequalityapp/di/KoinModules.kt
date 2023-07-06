@@ -1,5 +1,6 @@
 package hr.ferit.lifequalityapp.di
 
+import androidx.work.WorkManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import hr.ferit.lifequalityapp.sensing.sensors.Barometer
@@ -36,4 +37,8 @@ val viewModelModule = module {
 
 val locationClientModule = module {
     factory<FusedLocationProviderClient> { LocationServices.getFusedLocationProviderClient(androidContext()) }
+}
+
+val workManagerModule = module {
+    factory<WorkManager> { WorkManager.getInstance(androidContext()) }
 }

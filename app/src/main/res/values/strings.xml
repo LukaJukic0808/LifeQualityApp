@@ -27,4 +27,5 @@
     <string name="coarse_location_access_needed">"Aplikacija treba pristup približnoj lokaciji kako bi se odgovor uspješno spremio."</string>
     <string name="turn_on_location_service">"Molimo uključite lokacijske usluge."</string>
     <string name="location_unreachable">"Nije moguće dohvatiti lokaciju."</string>
+    <string name="uniqueWorkName">"measure"</string>
 </resources>
