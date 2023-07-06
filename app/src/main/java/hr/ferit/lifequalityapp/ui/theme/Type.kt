@@ -14,7 +14,7 @@ val RaleWay = FontFamily(
     Font(R.font.raleway_regular, FontWeight.Normal, FontStyle.Normal),
     Font(R.font.raleway_italic, FontWeight.Normal, FontStyle.Italic),
     Font(R.font.raleway_semibold, FontWeight.SemiBold, FontStyle.Normal),
-    Font(R.font.raleway_semibolditalic, FontWeight.SemiBold, FontStyle.Italic)
+    Font(R.font.raleway_semibolditalic, FontWeight.SemiBold, FontStyle.Italic),
 )
 
 val Typography = Typography(
@@ -23,8 +23,8 @@ val Typography = Typography(
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
-    )
+        letterSpacing = 0.5.sp,
+    ),
     /* Other default text styles to override
     titleLarge = TextStyle(
         fontFamily = FontFamily.Default,

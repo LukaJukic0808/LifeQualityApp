@@ -1,4 +1,4 @@
-package hr.ferit.lifequalityapp.ui.measurements
+package hr.ferit.lifequalityapp.ui.measurements.manual
 
 import android.content.Context
 import android.location.Location
@@ -8,10 +8,19 @@ import com.google.firebase.ktx.Firebase
 import hr.ferit.lifequalityapp.R
 import hr.ferit.lifequalityapp.ui.authentication.UserToken
 
-fun saveManualInput(context: Context, userId: String, location: Location, noiseLevel: Int,
-                    doesThermometerExist : Boolean, doesBarometerExist : Boolean, doesHumiditySensorExist : Boolean,
-                    temperature: Float, pressure: Float, relativeHumidity: Float, currentTokenBalance: Int) {
-
+fun saveManualInput(
+    context: Context,
+    userId: String,
+    location: Location,
+    noiseLevel: Int,
+    doesThermometerExist: Boolean,
+    doesBarometerExist: Boolean,
+    doesHumiditySensorExist: Boolean,
+    temperature: Float,
+    pressure: Float,
+    relativeHumidity: Float,
+    currentTokenBalance: Int,
+) {
     val db = Firebase.firestore
     val manualInput = ManualInput()
     var addedTokens = 0
@@ -47,16 +56,16 @@ fun saveManualInput(context: Context, userId: String, location: Location, noiseL
                 context,
                 String.format(
                     context.resources.getString(R.string.answer_stored),
-                    addedTokens
+                    addedTokens,
                 ),
-                Toast.LENGTH_SHORT
+                Toast.LENGTH_SHORT,
             ).show()
         }
         .addOnFailureListener {
             Toast.makeText(
                 context,
                 R.string.answer_not_stored,
-                Toast.LENGTH_SHORT
+                Toast.LENGTH_SHORT,
             ).show()
         }
 }

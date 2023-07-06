@@ -30,8 +30,8 @@ import hr.ferit.lifequalityapp.ui.theme.RaleWay
 
 @Composable
 fun GoogleButton(
-    onClick: () -> Unit
-){
+    onClick: () -> Unit,
+) {
     Button(
         onClick = { onClick() },
         shape = RoundedCornerShape(12.dp),
@@ -49,7 +49,7 @@ fun GoogleButton(
                 painter = painterResource(id = R.drawable.google_logo),
                 contentDescription = "Google Logo",
                 modifier = Modifier
-                    .size(21.dp)
+                    .size(21.dp),
             )
             Spacer(Modifier.width(15.dp))
             Text(
@@ -58,7 +58,7 @@ fun GoogleButton(
                 fontFamily = RaleWay,
                 fontStyle = FontStyle.Normal,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 15.sp
+                fontSize = 15.sp,
             )
         }
     }

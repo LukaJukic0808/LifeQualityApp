@@ -21,7 +21,7 @@ import hr.ferit.lifequalityapp.ui.components.Title
 @Composable
 fun SignInScreen(
     state: SignInState,
-    onSignInClick: () -> Unit
+    onSignInClick: () -> Unit,
 ) {
     val context = LocalContext.current
     LaunchedEffect(key1 = state.signInError) {
@@ -29,24 +29,24 @@ fun SignInScreen(
             Toast.makeText(
                 context,
                 error,
-                Toast.LENGTH_LONG
+                Toast.LENGTH_LONG,
             ).show()
         }
     }
-    Box(modifier = Modifier
+    Box(
+        modifier = Modifier
             .fillMaxSize()
             .paint(
-            painterResource(id = R.drawable.login_background),
-            contentScale = ContentScale.FillBounds
-        ),
-        contentAlignment = Alignment.Center
+                painterResource(id = R.drawable.login_background),
+                contentScale = ContentScale.FillBounds,
+            ),
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             modifier = Modifier.matchParentSize(),
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally,
-        )
-        {
+        ) {
             Title()
             GoogleButton(onSignInClick)
         }

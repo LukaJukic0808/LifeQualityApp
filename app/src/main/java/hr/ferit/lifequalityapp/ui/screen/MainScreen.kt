@@ -2,12 +2,12 @@ package hr.ferit.lifequalityapp.ui.screen
 
 import android.app.Activity.RESULT_OK
 import android.widget.Toast
-import androidx.compose.runtime.getValue
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -23,27 +23,25 @@ import hr.ferit.lifequalityapp.ui.viewmodels.SignInViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
-
 @Composable
 fun MainScreen() {
-
     val applicationContext = LocalContext.current
     val googleAuthUiClient by lazy {
         GoogleAuthUiClient(
             context = applicationContext,
-            oneTapClient = Identity.getSignInClient(applicationContext)
+            oneTapClient = Identity.getSignInClient(applicationContext),
         )
     }
 
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Screen.SignInScreen.route) {
         composable(Screen.SignInScreen.route) {
-            val signInViewModel : SignInViewModel = koinViewModel()
+            val signInViewModel: SignInViewModel = koinViewModel()
             val state by signInViewModel.state.collectAsStateWithLifecycle()
             val coroutineScope = rememberCoroutineScope()
 
             LaunchedEffect(key1 = Unit) {
-                if(googleAuthUiClient.getSignedInUser() != null) {
+                if (googleAuthUiClient.getSignedInUser() != null) {
                     navController.navigate(Screen.HomeScreen.route)
                 }
             }
@@ -51,51 +49,49 @@ fun MainScreen() {
             val launcher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.StartIntentSenderForResult(),
                 onResult = { result ->
-                    if(result.resultCode == RESULT_OK) {
+                    if (result.resultCode == RESULT_OK) {
                         coroutineScope.launch {
                             val signInResult = googleAuthUiClient.signInWithIntent(
-                                intent = result.data ?: return@launch
+                                intent = result.data ?: return@launch,
                             )
                             signInViewModel.onSignInResult(signInResult)
                         }
                     }
-                }
+                },
             )
 
             LaunchedEffect(key1 = state.isSignInSuccessful) {
-                if(state.isSignInSuccessful) {
+                if (state.isSignInSuccessful) {
                     Toast.makeText(
                         applicationContext,
                         R.string.sign_in_success,
-                        Toast.LENGTH_SHORT
+                        Toast.LENGTH_SHORT,
                     ).show()
                     navController.navigate(Screen.HomeScreen.route)
                     signInViewModel.resetState()
                 }
-
             }
 
             SignInScreen(
                 state = state,
                 onSignInClick = {
-                    if(!NetworkChecker.isNetworkAvailable(applicationContext)){
+                    if (!NetworkChecker.isNetworkAvailable(applicationContext)) {
                         Toast.makeText(
                             applicationContext,
                             R.string.network_error,
-                            Toast.LENGTH_SHORT
+                            Toast.LENGTH_SHORT,
                         ).show()
-                    }
-                    else {
+                    } else {
                         coroutineScope.launch {
                             val signInIntentSender = googleAuthUiClient.signIn()
                             launcher.launch(
                                 IntentSenderRequest.Builder(
-                                    signInIntentSender ?: return@launch
-                                ).build()
+                                    signInIntentSender ?: return@launch,
+                                ).build(),
                             )
                         }
                     }
-                }
+                },
             )
         }
 
@@ -109,12 +105,12 @@ fun MainScreen() {
                         Toast.makeText(
                             applicationContext,
                             R.string.sign_out_success,
-                            Toast.LENGTH_SHORT
+                            Toast.LENGTH_SHORT,
                         ).show()
                         navController.popBackStack()
                     }
                 },
-                navController = navController
+                navController = navController,
             )
         }
 
@@ -128,19 +124,15 @@ fun MainScreen() {
                         Toast.makeText(
                             applicationContext,
                             R.string.sign_out_success,
-                            Toast.LENGTH_SHORT
+                            Toast.LENGTH_SHORT,
                         ).show()
                         navController.navigate(Screen.SignInScreen.route) {
                             popUpTo(Screen.SignInScreen.route)
                         }
                     }
                 },
-                navController = navController
+                navController = navController,
             )
         }
     }
 }
-
-
-
-

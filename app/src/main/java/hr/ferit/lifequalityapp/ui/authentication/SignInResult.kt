@@ -2,7 +2,7 @@ package hr.ferit.lifequalityapp.ui.authentication
 
 data class SignInResult(
     val data: UserData?,
-    val errorMessage: String?
+    val errorMessage: String?,
 )
 
 data class UserData(

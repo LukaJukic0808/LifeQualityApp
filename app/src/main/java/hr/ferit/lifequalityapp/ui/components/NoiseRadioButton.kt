@@ -18,17 +18,17 @@ import hr.ferit.lifequalityapp.ui.theme.RaleWay
 fun NoiseRadioButton(
     label: String,
     index: Int,
-    selectedButton : Int,
+    selectedButton: Int,
     onRadioButtonClick: (index: Int) -> Unit,
-){
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
+        horizontalArrangement = Arrangement.Center,
     ) {
         RadioButton(
-            selected = index==selectedButton,
-            onClick = { onRadioButtonClick.invoke(index) }
+            selected = index == selectedButton,
+            onClick = { onRadioButtonClick.invoke(index) },
         )
         Text(
             text = label,
@@ -36,7 +36,7 @@ fun NoiseRadioButton(
             fontFamily = RaleWay,
             fontStyle = FontStyle.Normal,
             fontWeight = FontWeight.SemiBold,
-            fontSize = 16.sp
+            fontSize = 16.sp,
         )
     }
 }

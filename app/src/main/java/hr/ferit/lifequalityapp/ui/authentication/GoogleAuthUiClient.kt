@@ -13,21 +13,20 @@ import hr.ferit.lifequalityapp.R
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 
-
 class GoogleAuthUiClient(
     private val context: Context,
-    private val oneTapClient: SignInClient
+    private val oneTapClient: SignInClient,
 ) {
     private val auth = Firebase.auth
 
     suspend fun signIn(): IntentSender? {
         val result = try {
             oneTapClient.beginSignIn(
-                buildSignInRequest()
+                buildSignInRequest(),
             ).await()
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
-            if(e is CancellationException) throw e
+            if (e is CancellationException) throw e
             null
         }
         return result?.pendingIntent?.intentSender
@@ -47,17 +46,17 @@ class GoogleAuthUiClient(
                         userId = uid,
                         username = displayName,
                         isNewUser = isNewUser,
-                        profilePictureUrl = photoUrl?.toString()
+                        profilePictureUrl = photoUrl?.toString(),
                     )
                 },
-                errorMessage = null
+                errorMessage = null,
             )
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
-            if(e is CancellationException) throw e
+            if (e is CancellationException) throw e
             SignInResult(
                 data = null,
-                errorMessage = e.message
+                errorMessage = e.message,
             )
         }
     }
@@ -66,9 +65,9 @@ class GoogleAuthUiClient(
         try {
             oneTapClient.signOut().await()
             auth.signOut()
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
-            if(e is CancellationException) throw e
+            if (e is CancellationException) throw e
         }
     }
 
@@ -77,7 +76,7 @@ class GoogleAuthUiClient(
             userId = uid,
             username = displayName,
             isNewUser = false,
-            profilePictureUrl = photoUrl?.toString()
+            profilePictureUrl = photoUrl?.toString(),
         )
     }
 
@@ -88,7 +87,7 @@ class GoogleAuthUiClient(
                     .setSupported(true)
                     .setFilterByAuthorizedAccounts(false)
                     .setServerClientId(context.getString(R.string.web_client_id))
-                    .build()
+                    .build(),
             )
             .setAutoSelectEnabled(true)
             .build()

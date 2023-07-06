@@ -1,4 +1,4 @@
-package hr.ferit.lifequalityapp.ui.measurements
+package hr.ferit.lifequalityapp.ui.measurements.manual
 
 data class ManualInput(
     var latitude: Double? = null,
@@ -6,5 +6,5 @@ data class ManualInput(
     var noiseLevel: Int = 0,
     var temperature: Float? = null,
     var relativeHumidity: Float? = null,
-    var pressure: Float? = null
+    var pressure: Float? = null,
 )

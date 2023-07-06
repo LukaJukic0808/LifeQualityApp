@@ -22,16 +22,16 @@ fun PermissionDialog(
     onDismiss: () -> Unit,
     onOkClick: () -> Unit,
     onGoToAppSettingsClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
             Column(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
-                    text = if(isPermanentlyDeclined) {
+                    text = if (isPermanentlyDeclined) {
                         stringResource(R.string.grant_permission)
                     } else {
                         stringResource(R.string.ok)
@@ -47,7 +47,7 @@ fun PermissionDialog(
                                 onOkClick()
                             }
                         }
-                        .padding(10.dp)
+                        .padding(10.dp),
                 )
             }
         },
@@ -57,10 +57,10 @@ fun PermissionDialog(
         text = {
             Text(
                 text = permissionTextProvider.getDescription(
-                    isPermanentlyDeclined = isPermanentlyDeclined
-                )
+                    isPermanentlyDeclined = isPermanentlyDeclined,
+                ),
             )
         },
-        modifier = modifier
+        modifier = modifier,
     )
 }

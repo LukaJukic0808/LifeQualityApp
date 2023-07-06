@@ -32,12 +32,12 @@ import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.OnTokenCanceledListener
 import hr.ferit.lifequalityapp.R
 import hr.ferit.lifequalityapp.ui.authentication.UserData
-import hr.ferit.lifequalityapp.ui.permissions.FineLocationPermissionTextProvider
 import hr.ferit.lifequalityapp.ui.components.ManualInputScreenBody
 import hr.ferit.lifequalityapp.ui.components.NetworkChecker
 import hr.ferit.lifequalityapp.ui.components.PermissionDialog
 import hr.ferit.lifequalityapp.ui.components.StatusBar
-import hr.ferit.lifequalityapp.ui.measurements.saveManualInput
+import hr.ferit.lifequalityapp.ui.measurements.manual.saveManualInput
+import hr.ferit.lifequalityapp.ui.permissions.FineLocationPermissionTextProvider
 import hr.ferit.lifequalityapp.ui.permissions.hasLocationPermission
 import hr.ferit.lifequalityapp.ui.viewmodels.BarometerViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.HumiditySensorViewModel
@@ -54,13 +54,13 @@ fun ManualInputScreen(
     userData: UserData?,
     onSignOut: () -> Unit,
     navController: NavController,
-    tokensViewModel : TokensViewModel = koinViewModel(),
+    tokensViewModel: TokensViewModel = koinViewModel(),
     radioButtonViewModel: RadioButtonViewModel = koinViewModel(),
     thermometerViewModel: ThermometerViewModel = koinViewModel(),
     humiditySensorViewModel: HumiditySensorViewModel = koinViewModel(),
     barometerViewModel: BarometerViewModel = koinViewModel(),
     permissionViewModel: PermissionViewModel = koinViewModel(),
-    locationClient: FusedLocationProviderClient = get()
+    locationClient: FusedLocationProviderClient = get(),
 ) {
     val context = LocalContext.current
     val temperature by thermometerViewModel.temperature.collectAsStateWithLifecycle()
@@ -68,16 +68,16 @@ fun ManualInputScreen(
     val relativeHumidity by humiditySensorViewModel.relativeHumidity.collectAsStateWithLifecycle()
     val permissionToRequest = Manifest.permission.ACCESS_FINE_LOCATION
 
-    //permission logic
+    // permission logic
     val dialogQueue = permissionViewModel.visiblePermissionDialogQueue
     val locationPermissionResultLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
             permissionViewModel.onPermissionResult(
                 permission = permissionToRequest,
-                isGranted = isGranted
+                isGranted = isGranted,
             )
-        }
+        },
     )
 
     Box(
@@ -99,7 +99,7 @@ fun ManualInputScreen(
                         Toast.makeText(
                             context,
                             R.string.network_error,
-                            Toast.LENGTH_SHORT
+                            Toast.LENGTH_SHORT,
                         ).show()
                     } else {
                         if (context.hasLocationPermission()) {
@@ -113,7 +113,7 @@ fun ManualInputScreen(
                                 Toast.makeText(
                                     context,
                                     R.string.turn_on_location_service,
-                                    Toast.LENGTH_SHORT
+                                    Toast.LENGTH_SHORT,
                                 )
                                     .show()
                             } else {
@@ -124,15 +124,16 @@ fun ManualInputScreen(
                                             CancellationTokenSource().token
 
                                         override fun isCancellationRequested() = false
-                                    })
+                                    },
+                                )
                                     .addOnSuccessListener { location: Location? ->
-                                        if (location == null)
+                                        if (location == null) {
                                             Toast.makeText(
                                                 context,
                                                 R.string.location_unreachable,
-                                                Toast.LENGTH_SHORT
+                                                Toast.LENGTH_SHORT,
                                             ).show()
-                                        else {
+                                        } else {
                                             saveManualInput(
                                                 context = context,
                                                 userId = userData?.userId!!,
@@ -144,22 +145,22 @@ fun ManualInputScreen(
                                                 temperature = temperature,
                                                 pressure = pressure,
                                                 relativeHumidity = relativeHumidity,
-                                                currentTokenBalance = tokensViewModel.tokens
-                                                )
+                                                currentTokenBalance = tokensViewModel.tokens,
+                                            )
                                             navController.popBackStack()
                                         }
-                                }
+                                    }
                             }
                         } else {
                             locationPermissionResultLauncher.launch(permissionToRequest)
                         }
                     }
-                }
+                },
             )
         }
     }
 
-    //showing permission dialogs
+    // showing permission dialogs
     dialogQueue
         .reversed()
         .forEach { permission ->
@@ -172,22 +173,22 @@ fun ManualInputScreen(
                 },
                 isPermanentlyDeclined = !shouldShowRequestPermissionRationale(
                     context as Activity,
-                    permission
+                    permission,
                 ),
                 onDismiss = permissionViewModel::dismissDialog,
                 onOkClick = {
                     permissionViewModel.dismissDialog()
                     locationPermissionResultLauncher.launch(
-                        permission
+                        permission,
                     )
                 },
                 onGoToAppSettingsClick = {
                     val intent = Intent(
                         Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                        Uri.fromParts("package", context.packageName, null)
+                        Uri.fromParts("package", context.packageName, null),
                     )
                     context.startActivity(intent)
-                }
+                },
             )
         }
 }

@@ -13,7 +13,7 @@ import hr.ferit.lifequalityapp.R
 import hr.ferit.lifequalityapp.ui.theme.RaleWay
 
 @Composable
-fun Title(){
+fun Title() {
     Text(
         text = stringResource(R.string.app_name),
         textAlign = TextAlign.Center,
@@ -23,6 +23,6 @@ fun Title(){
             fontStyle = FontStyle.Italic,
             fontSize = 55.sp,
             fontWeight = FontWeight.SemiBold,
-        )
+        ),
     )
 }

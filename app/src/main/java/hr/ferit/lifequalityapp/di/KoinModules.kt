@@ -34,6 +34,6 @@ val viewModelModule = module {
     viewModel<PermissionViewModel> { PermissionViewModel() }
 }
 
-val locationClientModule = module{
+val locationClientModule = module {
     factory<FusedLocationProviderClient> { LocationServices.getFusedLocationProviderClient(androidContext()) }
 }

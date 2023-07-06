@@ -10,8 +10,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import hr.ferit.lifequalityapp.ui.authentication.UserToken
 
-
-class TokensViewModel: ViewModel() {
+class TokensViewModel : ViewModel() {
 
     private val db = Firebase.firestore
     private val userId = Firebase.auth.currentUser?.uid
@@ -22,7 +21,7 @@ class TokensViewModel: ViewModel() {
     }
 
     private fun getRealTimeTokensUpdate() {
-        if(userId != null) {
+        if (userId != null) {
             val docRef = db.collection("users").document(userId)
             docRef.addSnapshotListener { snapshot, e ->
                 if (e != null) {

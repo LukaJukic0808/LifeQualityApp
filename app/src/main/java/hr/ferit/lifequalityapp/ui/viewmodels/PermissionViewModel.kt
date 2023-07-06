@@ -3,7 +3,7 @@ package hr.ferit.lifequalityapp.ui.viewmodels
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 
-class PermissionViewModel: ViewModel() {
+class PermissionViewModel : ViewModel() {
 
     val visiblePermissionDialogQueue = mutableStateListOf<String>()
 
@@ -13,9 +13,9 @@ class PermissionViewModel: ViewModel() {
 
     fun onPermissionResult(
         permission: String,
-        isGranted: Boolean
+        isGranted: Boolean,
     ) {
-        if(!isGranted && !visiblePermissionDialogQueue.contains(permission)) {
+        if (!isGranted && !visiblePermissionDialogQueue.contains(permission)) {
             visiblePermissionDialogQueue.add(permission)
         }
     }

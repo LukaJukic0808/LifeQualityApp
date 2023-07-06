@@ -28,34 +28,35 @@ import hr.ferit.lifequalityapp.ui.theme.RaleWay
 @Composable
 fun ManualInputScreenBody(
     selectedButton: Int,
-    onRadioButtonClick: (index : Int) -> Unit,
+    onRadioButtonClick: (index: Int) -> Unit,
     onSendAnswerClick: () -> Unit,
-){
+) {
     val labels = listOf(
         stringResource(R.string.low),
         stringResource(R.string.medium),
-        stringResource(R.string.high)
+        stringResource(R.string.high),
     )
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ){
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
         Text(
             stringResource(R.string.choose_noise_level),
             textAlign = TextAlign.Center,
             fontFamily = RaleWay,
             fontStyle = FontStyle.Normal,
             fontWeight = FontWeight.SemiBold,
-            fontSize = 25.sp
+            fontSize = 25.sp,
         )
         Spacer(Modifier.height(20.dp))
-        labels.forEach{
+        labels.forEach {
                 label ->
-            if(label==labels[0])
+            if (label == labels[0]) {
                 NoiseRadioButton(label, labels.indexOf(label), selectedButton, onRadioButtonClick)
-            else
+            } else {
                 NoiseRadioButton(label, labels.indexOf(label), selectedButton, onRadioButtonClick)
+            }
         }
         Spacer(Modifier.height(40.dp))
         Button(
@@ -71,19 +72,22 @@ fun ManualInputScreenBody(
                 .border(
                     width = 2.dp,
                     color = Color.Black,
-                    shape = RoundedCornerShape(40.dp)
+                    shape = RoundedCornerShape(40.dp),
                 ),
-            colors = ButtonDefaults.buttonColors(contentColor = Color.Black, containerColor = colorResource(
-                R.color.green)
-            )
-        ){
+            colors = ButtonDefaults.buttonColors(
+                contentColor = Color.Black,
+                containerColor = colorResource(
+                    R.color.green,
+                ),
+            ),
+        ) {
             Text(
                 stringResource(R.string.send),
                 textAlign = TextAlign.Center,
                 fontFamily = RaleWay,
                 fontStyle = FontStyle.Normal,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp
+                fontSize = 16.sp,
             )
         }
     }

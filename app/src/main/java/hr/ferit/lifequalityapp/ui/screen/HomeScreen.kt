@@ -1,66 +1,104 @@
 package hr.ferit.lifequalityapp.ui.screen
 
-
 import android.Manifest
+import android.annotation.TargetApi
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.location.LocationManager
 import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import hr.ferit.lifequalityapp.R
-import hr.ferit.lifequalityapp.ui.authentication.UserData
 import androidx.compose.ui.res.colorResource
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.navigation.NavController
-import hr.ferit.lifequalityapp.ui.permissions.CoarseLocationPermissionTextProvider
+import androidx.work.Constraints
+import androidx.work.Data
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import hr.ferit.lifequalityapp.R
+import hr.ferit.lifequalityapp.ui.authentication.UserData
 import hr.ferit.lifequalityapp.ui.components.HomeScreenBody
-import hr.ferit.lifequalityapp.ui.permissions.FineLocationPermissionTextProvider
-import hr.ferit.lifequalityapp.ui.permissions.MicrophonePermissionTextProvider
 import hr.ferit.lifequalityapp.ui.components.NetworkChecker
 import hr.ferit.lifequalityapp.ui.components.PermissionDialog
 import hr.ferit.lifequalityapp.ui.components.StatusBar
+import hr.ferit.lifequalityapp.ui.measurements.automatic.AutomaticMeasurementWorker
 import hr.ferit.lifequalityapp.ui.navigation.Screen
+import hr.ferit.lifequalityapp.ui.permissions.CoarseLocationPermissionTextProvider
+import hr.ferit.lifequalityapp.ui.permissions.FineLocationPermissionTextProvider
+import hr.ferit.lifequalityapp.ui.permissions.MicrophonePermissionTextProvider
 import hr.ferit.lifequalityapp.ui.permissions.hasLocationAndRecordAudioPermission
 import hr.ferit.lifequalityapp.ui.viewmodels.PermissionViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.ServiceToggleViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.TokensViewModel
 import org.koin.androidx.compose.koinViewModel
+import java.time.Duration
 
 @Composable
+@TargetApi(29)
 fun HomeScreen(
     userData: UserData?,
     onSignOut: () -> Unit,
     navController: NavController,
-    tokensViewModel : TokensViewModel = koinViewModel(),
-    serviceToggleViewModel : ServiceToggleViewModel = koinViewModel(),
-    permissionViewModel: PermissionViewModel = koinViewModel()
+    tokensViewModel: TokensViewModel = koinViewModel(),
+    serviceToggleViewModel: ServiceToggleViewModel = koinViewModel(),
+    permissionViewModel: PermissionViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
+    val workManager = WorkManager.getInstance(context)
+    val measurementRequest =
+        PeriodicWorkRequestBuilder<AutomaticMeasurementWorker>(Duration.ofMinutes(15))
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(
+                        NetworkType.CONNECTED,
+                    )
+                    .build(),
+            )
+            .setInputData(
+                Data.Builder().putString("user_id", userData?.userId!!).build(),
+            )
+            .setInitialDelay(Duration.ofSeconds(10))
+            .build()
+
+    val workInfo = workManager
+        .getWorkInfosForUniqueWorkLiveData("measure")
+        .observeAsState()
+        .value
+
+    serviceToggleViewModel.isMyServiceRunning(workInfo)
+
     val permissionsToRequest = arrayOf(
         Manifest.permission.ACCESS_COARSE_LOCATION,
         Manifest.permission.ACCESS_FINE_LOCATION,
-        Manifest.permission.RECORD_AUDIO
+        Manifest.permission.RECORD_AUDIO,
     )
 
-    //permission logic
+    // permission logic
     val dialogQueue = permissionViewModel.visiblePermissionDialogQueue
     val multiplePermissionResultLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
         onResult = { perms ->
-            permissionsToRequest.forEach { permission ->
+            perms.keys.forEach { permission ->
                 permissionViewModel.onPermissionResult(
                     permission = permission,
-                    isGranted = perms[permission] == true
+                    isGranted = perms[permission] == true,
                 )
             }
-        }
+        },
     )
 
     Box(
@@ -77,27 +115,47 @@ fun HomeScreen(
                     navController.navigate(Screen.ManualInputScreen.route)
                 },
                 onToggleService = {
-                    if(!NetworkChecker.isNetworkAvailable(context)){
+                    if (!NetworkChecker.isNetworkAvailable(context)) {
                         Toast.makeText(
                             context,
                             R.string.network_error,
-                            Toast.LENGTH_SHORT
+                            Toast.LENGTH_SHORT,
                         ).show()
-                    }
-                    else {
-                        if(context.hasLocationAndRecordAudioPermission()) {
-                            serviceToggleViewModel.toggleService()
-                        } else{
+                    } else {
+                        if (context.hasLocationAndRecordAudioPermission()) {
+                            val locationManager =
+                                context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                            val isGpsEnabled =
+                                locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                            val isNetworkEnabled =
+                                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+                            if (!serviceToggleViewModel.isServiceRunning && !isGpsEnabled && !isNetworkEnabled) {
+                                Toast.makeText(
+                                    context,
+                                    R.string.turn_on_location_service,
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                            } else if (!serviceToggleViewModel.isServiceRunning) {
+                                workManager
+                                    .enqueueUniquePeriodicWork(
+                                        "measure",
+                                        ExistingPeriodicWorkPolicy.KEEP,
+                                        measurementRequest,
+                                    )
+                            } else {
+                                workManager.cancelAllWork()
+                            }
+                        } else {
                             multiplePermissionResultLauncher.launch(permissionsToRequest)
                         }
                     }
                 },
-                serviceToggleViewModel.isServiceRunning
+                serviceToggleViewModel.isServiceRunning,
             )
         }
     }
 
-    //showing permission dialogs
+    // showing permission dialogs
     dialogQueue
         .reversed()
         .forEach { permission ->
@@ -106,33 +164,35 @@ fun HomeScreen(
                     Manifest.permission.ACCESS_FINE_LOCATION -> {
                         FineLocationPermissionTextProvider(context)
                     }
+
                     Manifest.permission.ACCESS_COARSE_LOCATION -> {
                         CoarseLocationPermissionTextProvider(context)
                     }
+
                     Manifest.permission.RECORD_AUDIO -> {
                         MicrophonePermissionTextProvider(context)
                     }
+
                     else -> return@forEach
                 },
                 isPermanentlyDeclined = !shouldShowRequestPermissionRationale(
                     context as Activity,
-                    permission
+                    permission,
                 ),
                 onDismiss = permissionViewModel::dismissDialog,
                 onOkClick = {
                     permissionViewModel.dismissDialog()
                     multiplePermissionResultLauncher.launch(
-                        arrayOf(permission)
+                        arrayOf(permission),
                     )
                 },
                 onGoToAppSettingsClick = {
                     val intent = Intent(
                         Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                        Uri.fromParts("package", context.packageName, null)
+                        Uri.fromParts("package", context.packageName, null),
                     )
                     context.startActivity(intent)
-                }
+                },
             )
         }
 }
-

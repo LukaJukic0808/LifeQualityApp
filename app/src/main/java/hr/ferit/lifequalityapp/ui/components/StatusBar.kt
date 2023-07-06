@@ -32,13 +32,12 @@ import hr.ferit.lifequalityapp.ui.authentication.UserData
 fun StatusBar(
     userData: UserData?,
     onSignOut: () -> Unit,
-    tokens: Int
-){
-
+    tokens: Int,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Image(
             painter = painterResource(id = R.drawable.log_out),
@@ -46,7 +45,7 @@ fun StatusBar(
             modifier = Modifier
                 .size(40.dp)
                 .clickable { onSignOut.invoke() }
-                .rotate(180f)
+                .rotate(180f),
         )
         if (userData?.profilePictureUrl != null) {
             AsyncImage(
@@ -56,7 +55,7 @@ fun StatusBar(
                     .size(40.dp)
                     .padding(3.dp)
                     .clip(CircleShape),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
             )
         }
     }
@@ -65,14 +64,14 @@ fun StatusBar(
             .fillMaxWidth()
             .background(Color.White),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.End
+        horizontalArrangement = Arrangement.End,
     ) {
         Text(
             text = tokens.toString(),
             textAlign = TextAlign.Center,
             fontSize = 15.sp,
             fontStyle = FontStyle.Italic,
-            color = Color.Black
+            color = Color.Black,
         )
         Spacer(Modifier.width(4.dp))
         Image(
@@ -81,8 +80,8 @@ fun StatusBar(
             modifier = Modifier
                 .size(25.dp)
                 .padding(
-                    end = 5.dp
-                )
+                    end = 5.dp,
+                ),
         )
     }
 }

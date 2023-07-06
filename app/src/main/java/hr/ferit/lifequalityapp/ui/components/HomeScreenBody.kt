@@ -29,14 +29,13 @@ import hr.ferit.lifequalityapp.ui.theme.RaleWay
 fun HomeScreenBody(
     onManualInputClick: () -> Unit,
     onToggleService: () -> Unit,
-    isServiceRunning : Boolean
-){
-
+    isServiceRunning: Boolean,
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ){
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
         Button(
             onClick = { onManualInputClick.invoke() },
             shape = RoundedCornerShape(40.dp),
@@ -48,9 +47,9 @@ fun HomeScreenBody(
                 .border(
                     width = 2.dp,
                     color = Color.Black,
-                    shape = RoundedCornerShape(40.dp)
+                    shape = RoundedCornerShape(40.dp),
                 ),
-            colors = ButtonDefaults.buttonColors(contentColor = Color.Black, containerColor = Color.White)
+            colors = ButtonDefaults.buttonColors(contentColor = Color.Black, containerColor = Color.White),
         ) {
             Text(
                 stringResource(R.string.manual_input),
@@ -58,7 +57,7 @@ fun HomeScreenBody(
                 fontFamily = RaleWay,
                 fontStyle = FontStyle.Normal,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp
+                fontSize = 16.sp,
             )
         }
         Spacer(Modifier.height(150.dp))
@@ -75,30 +74,31 @@ fun HomeScreenBody(
                 .border(
                     width = 2.dp,
                     color = Color.Black,
-                    shape = RoundedCornerShape(40.dp)
+                    shape = RoundedCornerShape(40.dp),
                 ),
             colors =
-            if(isServiceRunning){
+            if (isServiceRunning) {
                 ButtonDefaults.buttonColors(contentColor = Color.White, containerColor = Color.Red)
-            }
-            else{
-                ButtonDefaults.buttonColors(contentColor = Color.Black, containerColor = colorResource(
-                    R.color.green)
+            } else {
+                ButtonDefaults.buttonColors(
+                    contentColor = Color.Black,
+                    containerColor = colorResource(
+                        R.color.green,
+                    ),
                 )
             },
         ) {
             Text(
-                if(isServiceRunning){
+                if (isServiceRunning) {
                     stringResource(R.string.stop_measuring)
-                }
-                else{
+                } else {
                     stringResource(R.string.start_measuring)
                 },
                 textAlign = TextAlign.Center,
                 fontFamily = RaleWay,
                 fontStyle = FontStyle.Normal,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp
+                fontSize = 16.sp,
             )
         }
     }
