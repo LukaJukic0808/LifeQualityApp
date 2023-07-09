@@ -1,12 +1,14 @@
 package hr.ferit.lifequalityapp.ui.screen
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.location.LocationManager
 import android.net.Uri
+import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -41,13 +43,16 @@ import hr.ferit.lifequalityapp.ui.navigation.Screen
 import hr.ferit.lifequalityapp.ui.permissions.CoarseLocationPermissionTextProvider
 import hr.ferit.lifequalityapp.ui.permissions.FineLocationPermissionTextProvider
 import hr.ferit.lifequalityapp.ui.permissions.MicrophonePermissionTextProvider
+import hr.ferit.lifequalityapp.ui.permissions.hasBackgroundLocationPermission
 import hr.ferit.lifequalityapp.ui.permissions.hasLocationAndRecordAudioPermission
+import hr.ferit.lifequalityapp.ui.permissions.isIgnoringBatteryOptimizations
 import hr.ferit.lifequalityapp.ui.viewmodels.PermissionViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.ServiceToggleViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.TokensViewModel
 import org.koin.androidx.compose.koinViewModel
 import java.time.Duration
 
+@SuppressLint("BatteryLife")
 @Composable
 @TargetApi(29)
 fun HomeScreen(
@@ -82,11 +87,20 @@ fun HomeScreen(
 
     serviceToggleViewModel.isMyServiceRunning(workInfo)
 
-    val permissionsToRequest = arrayOf(
-        Manifest.permission.RECORD_AUDIO,
-        Manifest.permission.ACCESS_COARSE_LOCATION,
-        Manifest.permission.ACCESS_FINE_LOCATION,
-    )
+    val permissionsToRequest: Array<String> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        arrayOf(
+            Manifest.permission.POST_NOTIFICATIONS,
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+        )
+    } else {
+        arrayOf(
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+        )
+    }
 
     // permission logic
     val dialogQueue = permissionViewModel.visiblePermissionDialogQueue
@@ -124,27 +138,53 @@ fun HomeScreen(
                         ).show()
                     } else {
                         if (context.hasLocationAndRecordAudioPermission()) {
-                            val locationManager =
-                                context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-                            val isGpsEnabled =
-                                locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-                            val isNetworkEnabled =
-                                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
-                            if (!serviceToggleViewModel.isServiceRunning && !isGpsEnabled && !isNetworkEnabled) {
+                            if (context.hasBackgroundLocationPermission()) {
+                                if (context.isIgnoringBatteryOptimizations(context.packageName)) {
+                                    val locationManager =
+                                        context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                                    val isGpsEnabled =
+                                        locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                                    val isNetworkEnabled =
+                                        locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+                                    if (!serviceToggleViewModel.isServiceRunning && !isGpsEnabled && !isNetworkEnabled) {
+                                        Toast.makeText(
+                                            context,
+                                            R.string.turn_on_location_service,
+                                            Toast.LENGTH_SHORT,
+                                        ).show()
+                                    } else if (!serviceToggleViewModel.isServiceRunning) {
+                                        workManager
+                                            .enqueueUniquePeriodicWork(
+                                                context.resources.getString(R.string.uniqueWorkName),
+                                                ExistingPeriodicWorkPolicy.KEEP,
+                                                measurementRequest,
+                                            )
+                                    } else {
+                                        workManager.cancelAllWork()
+                                    }
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        R.string.battery,
+                                        Toast.LENGTH_LONG,
+                                    ).show()
+                                    val intent = Intent(
+                                        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                                        Uri.fromParts("package", context.packageName, null),
+                                    )
+                                    context.startActivity(intent)
+                                }
+                            } else {
                                 Toast.makeText(
                                     context,
-                                    R.string.turn_on_location_service,
-                                    Toast.LENGTH_SHORT,
+                                    R.string.background_location_access_needed,
+                                    Toast.LENGTH_LONG,
                                 ).show()
-                            } else if (!serviceToggleViewModel.isServiceRunning) {
-                                workManager
-                                    .enqueueUniquePeriodicWork(
-                                        context.resources.getString(R.string.uniqueWorkName),
-                                        ExistingPeriodicWorkPolicy.KEEP,
-                                        measurementRequest,
-                                    )
-                            } else {
-                                workManager.cancelAllWork()
+                                val intent = Intent(
+                                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                    Uri.fromParts("package", context.packageName, null),
+                                )
+                                context.startActivity(intent)
                             }
                         } else {
                             multiplePermissionResultLauncher.launch(permissionsToRequest)

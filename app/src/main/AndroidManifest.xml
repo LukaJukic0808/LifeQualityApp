@@ -9,6 +9,7 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
     <uses-feature android:name="android.hardware.sensor.ambient_temperature"  android:required="false"/>
     <uses-feature android:name="android.hardware.sensor.barometer"  android:required="false"/>
     <uses-feature android:name="android.hardware.sensor.relative_humidity"  android:required="false"/>

@@ -28,4 +28,6 @@
     <string name="turn_on_location_service">"Molimo uključite lokacijske usluge."</string>
     <string name="location_unreachable">"Nije moguće dohvatiti lokaciju."</string>
     <string name="uniqueWorkName">"measure"</string>
+    <string name="background_location_access_needed">"Potrebno je dopuštenje za pristup lokaciji cijelo vrijeme."</string>
+    <string name="battery">"Funkcionalnost zahtjeva veću potrošnju baterije."</string>
 </resources>
