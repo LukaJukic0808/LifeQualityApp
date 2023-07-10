@@ -40,7 +40,6 @@ import hr.ferit.lifequalityapp.ui.components.PermissionDialog
 import hr.ferit.lifequalityapp.ui.components.StatusBar
 import hr.ferit.lifequalityapp.ui.measurements.automatic.AutomaticMeasurementWorker
 import hr.ferit.lifequalityapp.ui.navigation.Screen
-import hr.ferit.lifequalityapp.ui.permissions.CoarseLocationPermissionTextProvider
 import hr.ferit.lifequalityapp.ui.permissions.FineLocationPermissionTextProvider
 import hr.ferit.lifequalityapp.ui.permissions.MicrophonePermissionTextProvider
 import hr.ferit.lifequalityapp.ui.permissions.hasBackgroundLocationPermission
@@ -91,13 +90,11 @@ fun HomeScreen(
         arrayOf(
             Manifest.permission.POST_NOTIFICATIONS,
             Manifest.permission.RECORD_AUDIO,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.ACCESS_FINE_LOCATION,
         )
     } else {
         arrayOf(
             Manifest.permission.RECORD_AUDIO,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.ACCESS_FINE_LOCATION,
         )
     }
@@ -204,10 +201,6 @@ fun HomeScreen(
                 permissionTextProvider = when (permission) {
                     Manifest.permission.ACCESS_FINE_LOCATION -> {
                         FineLocationPermissionTextProvider(context)
-                    }
-
-                    Manifest.permission.ACCESS_COARSE_LOCATION -> {
-                        CoarseLocationPermissionTextProvider(context)
                     }
 
                     Manifest.permission.RECORD_AUDIO -> {
