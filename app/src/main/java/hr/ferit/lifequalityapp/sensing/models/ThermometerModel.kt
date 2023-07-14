@@ -1,23 +1,21 @@
-package hr.ferit.lifequalityapp.ui.viewmodels
+package hr.ferit.lifequalityapp.sensing.models
 
-import androidx.lifecycle.ViewModel
 import hr.ferit.lifequalityapp.sensing.MeasurableSensor
 import kotlinx.coroutines.flow.MutableStateFlow
 
-class ThermometerViewModel(private val thermometer: MeasurableSensor) : ViewModel() {
+class ThermometerModel(private val thermometer: MeasurableSensor) {
 
     var temperature = MutableStateFlow(0.0f)
     val doesSensorExist = thermometer.doesSensorExist
 
-    init {
+    fun start() {
         thermometer.startListening()
         thermometer.setOnSensorValueChangedListener { values ->
             temperature.value = values[0]
         }
     }
 
-    override fun onCleared() {
-        super.onCleared()
+    fun stop() {
         thermometer.stopListening()
     }
 }

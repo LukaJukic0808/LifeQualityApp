@@ -1,6 +1,7 @@
 package hr.ferit.lifequalityapp.ui.screen
 
 import android.app.Activity.RESULT_OK
+import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
@@ -10,19 +11,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.work.WorkManager
 import com.google.android.gms.auth.api.identity.Identity
 import hr.ferit.lifequalityapp.R
 import hr.ferit.lifequalityapp.ui.authentication.GoogleAuthUiClient
 import hr.ferit.lifequalityapp.ui.components.NetworkChecker
+import hr.ferit.lifequalityapp.ui.measurements.automatic.AutomaticMeasurementService
 import hr.ferit.lifequalityapp.ui.navigation.Screen
+import hr.ferit.lifequalityapp.ui.permissions.isMeasurementRunning
 import hr.ferit.lifequalityapp.ui.viewmodels.SignInViewModel
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.get
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -34,7 +36,6 @@ fun MainScreen() {
             oneTapClient = Identity.getSignInClient(applicationContext),
         )
     }
-    val workManager: WorkManager = get()
 
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Screen.SignInScreen.route) {
@@ -102,7 +103,6 @@ fun MainScreen() {
             val coroutineScope = rememberCoroutineScope()
             HomeScreen(
                 userData = googleAuthUiClient.getSignedInUser(),
-                workManager = workManager,
                 onSignOut = {
                     coroutineScope.launch {
                         googleAuthUiClient.signOut()
@@ -111,7 +111,12 @@ fun MainScreen() {
                             R.string.sign_out_success,
                             Toast.LENGTH_SHORT,
                         ).show()
-                        workManager.cancelAllWork()
+                        if (applicationContext.isMeasurementRunning()) {
+                            Intent(applicationContext, AutomaticMeasurementService::class.java).also {
+                                it.action = AutomaticMeasurementService.Actions.STOP.toString()
+                                ActivityCompat.startForegroundService(applicationContext, it)
+                            }
+                        }
                         navController.popBackStack()
                     }
                 },
@@ -131,7 +136,12 @@ fun MainScreen() {
                             R.string.sign_out_success,
                             Toast.LENGTH_SHORT,
                         ).show()
-                        workManager.cancelAllWork()
+                        if (applicationContext.isMeasurementRunning()) {
+                            Intent(applicationContext, AutomaticMeasurementService::class.java).also {
+                                it.action = AutomaticMeasurementService.Actions.STOP.toString()
+                                ActivityCompat.startForegroundService(applicationContext, it)
+                            }
+                        }
                         navController.navigate(Screen.SignInScreen.route) {
                             popUpTo(Screen.SignInScreen.route)
                         }

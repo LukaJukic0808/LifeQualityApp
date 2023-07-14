@@ -19,37 +19,27 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
+import androidx.core.app.ActivityCompat.startForegroundService
 import androidx.navigation.NavController
-import androidx.work.Constraints
-import androidx.work.Data
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
 import hr.ferit.lifequalityapp.R
 import hr.ferit.lifequalityapp.ui.authentication.UserData
 import hr.ferit.lifequalityapp.ui.components.HomeScreenBody
 import hr.ferit.lifequalityapp.ui.components.NetworkChecker
 import hr.ferit.lifequalityapp.ui.components.PermissionDialog
 import hr.ferit.lifequalityapp.ui.components.StatusBar
-import hr.ferit.lifequalityapp.ui.measurements.automatic.AutomaticMeasurementWorker
+import hr.ferit.lifequalityapp.ui.measurements.automatic.AutomaticMeasurementService
 import hr.ferit.lifequalityapp.ui.navigation.Screen
 import hr.ferit.lifequalityapp.ui.permissions.FineLocationPermissionTextProvider
 import hr.ferit.lifequalityapp.ui.permissions.MicrophonePermissionTextProvider
-import hr.ferit.lifequalityapp.ui.permissions.hasBackgroundLocationPermission
 import hr.ferit.lifequalityapp.ui.permissions.hasLocationAndRecordAudioPermission
-import hr.ferit.lifequalityapp.ui.permissions.isIgnoringBatteryOptimizations
 import hr.ferit.lifequalityapp.ui.viewmodels.PermissionViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.ServiceToggleViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.TokensViewModel
 import org.koin.androidx.compose.koinViewModel
-import java.time.Duration
 
 @SuppressLint("BatteryLife")
 @Composable
@@ -58,34 +48,11 @@ fun HomeScreen(
     userData: UserData?,
     onSignOut: () -> Unit,
     navController: NavController,
-    workManager: WorkManager,
     tokensViewModel: TokensViewModel = koinViewModel(),
     serviceToggleViewModel: ServiceToggleViewModel = koinViewModel(),
     permissionViewModel: PermissionViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
-    val measurementRequest =
-        PeriodicWorkRequestBuilder<AutomaticMeasurementWorker>(Duration.ofMinutes(15))
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(
-                        NetworkType.CONNECTED,
-                    )
-                    .build(),
-            )
-            .setInputData(
-                Data.Builder().putString("user_id", userData?.userId).build(),
-            )
-            .setInitialDelay(Duration.ofSeconds(10))
-            .build()
-
-    val workInfo = workManager
-        .getWorkInfosForUniqueWorkLiveData(stringResource(R.string.uniqueWorkName))
-        .observeAsState()
-        .value
-
-    serviceToggleViewModel.isMyServiceRunning(workInfo)
-
     val permissionsToRequest: Array<String> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         arrayOf(
             Manifest.permission.POST_NOTIFICATIONS,
@@ -127,64 +94,40 @@ fun HomeScreen(
                     navController.navigate(Screen.ManualInputScreen.route)
                 },
                 onToggleService = {
-                    if (!NetworkChecker.isNetworkAvailable(context)) {
+                    if (!NetworkChecker.isNetworkAvailable(context) && !serviceToggleViewModel.isServiceRunning) {
                         Toast.makeText(
                             context,
                             R.string.network_error,
                             Toast.LENGTH_SHORT,
                         ).show()
-                    } else {
-                        if (context.hasLocationAndRecordAudioPermission()) {
-                            if (context.hasBackgroundLocationPermission()) {
-                                if (context.isIgnoringBatteryOptimizations(context.packageName)) {
-                                    val locationManager =
-                                        context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-                                    val isGpsEnabled =
-                                        locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-                                    val isNetworkEnabled =
-                                        locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
-                                    if (!serviceToggleViewModel.isServiceRunning && !isGpsEnabled && !isNetworkEnabled) {
-                                        Toast.makeText(
-                                            context,
-                                            R.string.turn_on_location_service,
-                                            Toast.LENGTH_SHORT,
-                                        ).show()
-                                    } else if (!serviceToggleViewModel.isServiceRunning) {
-                                        workManager
-                                            .enqueueUniquePeriodicWork(
-                                                context.resources.getString(R.string.uniqueWorkName),
-                                                ExistingPeriodicWorkPolicy.KEEP,
-                                                measurementRequest,
-                                            )
-                                    } else {
-                                        workManager.cancelAllWork()
-                                    }
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        R.string.battery,
-                                        Toast.LENGTH_LONG,
-                                    ).show()
-                                    val intent = Intent(
-                                        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                                        Uri.fromParts("package", context.packageName, null),
-                                    )
-                                    context.startActivity(intent)
-                                }
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    R.string.background_location_access_needed,
-                                    Toast.LENGTH_LONG,
-                                ).show()
-                                val intent = Intent(
-                                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                    Uri.fromParts("package", context.packageName, null),
-                                )
-                                context.startActivity(intent)
-                            }
+                    } else if (context.hasLocationAndRecordAudioPermission() && !serviceToggleViewModel.isServiceRunning) {
+                        val locationManager =
+                            context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                        val isGpsEnabled =
+                            locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                        val isNetworkEnabled =
+                            locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+                        if (!isGpsEnabled && !isNetworkEnabled) {
+                            Toast.makeText(
+                                context,
+                                R.string.turn_on_location_service,
+                                Toast.LENGTH_SHORT,
+                            ).show()
                         } else {
-                            multiplePermissionResultLauncher.launch(permissionsToRequest)
+                            Intent(context, AutomaticMeasurementService::class.java).also {
+                                it.action = AutomaticMeasurementService.Actions.START.toString()
+                                it.putExtra("user_id", userData?.userId)
+                                startForegroundService(context, it)
+                                serviceToggleViewModel.toggleService()
+                            }
+                        }
+                    } else if (!serviceToggleViewModel.isServiceRunning) {
+                        multiplePermissionResultLauncher.launch(permissionsToRequest)
+                    } else {
+                        Intent(context, AutomaticMeasurementService::class.java).also {
+                            it.action = AutomaticMeasurementService.Actions.STOP.toString()
+                            startForegroundService(context, it)
+                            serviceToggleViewModel.toggleService()
                         }
                     }
                 },

@@ -7,7 +7,6 @@ import android.os.Build
 import hr.ferit.lifequalityapp.di.locationClientModule
 import hr.ferit.lifequalityapp.di.sensorsModule
 import hr.ferit.lifequalityapp.di.viewModelModule
-import hr.ferit.lifequalityapp.di.workManagerModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
@@ -16,7 +15,7 @@ class LifeQualityApp : Application() {
         super.onCreate()
         startKoin {
             androidContext(this@LifeQualityApp)
-            modules(viewModelModule, sensorsModule, locationClientModule, workManagerModule)
+            modules(viewModelModule, sensorsModule, locationClientModule)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(

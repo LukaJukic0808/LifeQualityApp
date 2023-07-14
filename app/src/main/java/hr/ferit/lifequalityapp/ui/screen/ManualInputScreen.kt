@@ -31,6 +31,9 @@ import com.google.android.gms.tasks.CancellationToken
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.OnTokenCanceledListener
 import hr.ferit.lifequalityapp.R
+import hr.ferit.lifequalityapp.sensing.models.BarometerModel
+import hr.ferit.lifequalityapp.sensing.models.HumiditySensorModel
+import hr.ferit.lifequalityapp.sensing.models.ThermometerModel
 import hr.ferit.lifequalityapp.ui.authentication.UserData
 import hr.ferit.lifequalityapp.ui.components.ManualInputScreenBody
 import hr.ferit.lifequalityapp.ui.components.NetworkChecker
@@ -39,11 +42,8 @@ import hr.ferit.lifequalityapp.ui.components.StatusBar
 import hr.ferit.lifequalityapp.ui.measurements.manual.saveManualInput
 import hr.ferit.lifequalityapp.ui.permissions.FineLocationPermissionTextProvider
 import hr.ferit.lifequalityapp.ui.permissions.hasLocationPermission
-import hr.ferit.lifequalityapp.ui.viewmodels.BarometerViewModel
-import hr.ferit.lifequalityapp.ui.viewmodels.HumiditySensorViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.PermissionViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.RadioButtonViewModel
-import hr.ferit.lifequalityapp.ui.viewmodels.ThermometerViewModel
 import hr.ferit.lifequalityapp.ui.viewmodels.TokensViewModel
 import org.koin.androidx.compose.get
 import org.koin.androidx.compose.koinViewModel
@@ -56,16 +56,16 @@ fun ManualInputScreen(
     navController: NavController,
     tokensViewModel: TokensViewModel = koinViewModel(),
     radioButtonViewModel: RadioButtonViewModel = koinViewModel(),
-    thermometerViewModel: ThermometerViewModel = koinViewModel(),
-    humiditySensorViewModel: HumiditySensorViewModel = koinViewModel(),
-    barometerViewModel: BarometerViewModel = koinViewModel(),
+    thermometerModel: ThermometerModel = get(),
+    humiditySensorModel: HumiditySensorModel = get(),
+    barometerModel: BarometerModel = get(),
     permissionViewModel: PermissionViewModel = koinViewModel(),
     locationClient: FusedLocationProviderClient = get(),
 ) {
     val context = LocalContext.current
-    val temperature by thermometerViewModel.temperature.collectAsStateWithLifecycle()
-    val pressure by barometerViewModel.pressure.collectAsStateWithLifecycle()
-    val relativeHumidity by humiditySensorViewModel.relativeHumidity.collectAsStateWithLifecycle()
+    val temperature by thermometerModel.temperature.collectAsStateWithLifecycle()
+    val pressure by barometerModel.pressure.collectAsStateWithLifecycle()
+    val relativeHumidity by humiditySensorModel.relativeHumidity.collectAsStateWithLifecycle()
     val permissionToRequest = Manifest.permission.ACCESS_FINE_LOCATION
 
     // permission logic
@@ -139,9 +139,9 @@ fun ManualInputScreen(
                                                 userId = userData?.userId!!,
                                                 location = location,
                                                 noiseLevel = radioButtonViewModel.selectedButton,
-                                                doesThermometerExist = thermometerViewModel.doesSensorExist,
-                                                doesBarometerExist = barometerViewModel.doesSensorExist,
-                                                doesHumiditySensorExist = humiditySensorViewModel.doesSensorExist,
+                                                doesThermometerExist = thermometerModel.doesSensorExist,
+                                                doesBarometerExist = barometerModel.doesSensorExist,
+                                                doesHumiditySensorExist = humiditySensorModel.doesSensorExist,
                                                 temperature = temperature,
                                                 pressure = pressure,
                                                 relativeHumidity = relativeHumidity,

@@ -1,22 +1,21 @@
 package hr.ferit.lifequalityapp.ui.viewmodels
 
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.work.WorkInfo
+import hr.ferit.lifequalityapp.ui.permissions.isMeasurementRunning
 
-class ServiceToggleViewModel : ViewModel() {
+class ServiceToggleViewModel(context: Context) : ViewModel() {
 
     var isServiceRunning by mutableStateOf(false)
 
-    fun isMyServiceRunning(workInfo: MutableList<WorkInfo>?) {
-        if (workInfo.isNullOrEmpty()) {
-            isServiceRunning = false
-        } else {
-            workInfo.forEach { info ->
-                isServiceRunning = info.state == WorkInfo.State.ENQUEUED || info.state == WorkInfo.State.RUNNING
-            }
-        }
+    init {
+        isServiceRunning = context.isMeasurementRunning()
     }
+    fun toggleService() {
+        isServiceRunning = !isServiceRunning
+    }
+
 }
