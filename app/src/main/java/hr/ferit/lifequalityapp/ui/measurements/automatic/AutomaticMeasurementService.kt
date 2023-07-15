@@ -2,10 +2,7 @@ package hr.ferit.lifequalityapp.ui.measurements.automatic
 
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
-import android.app.Notification
 import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -15,17 +12,14 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
-import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationToken
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.OnTokenCanceledListener
-import hr.ferit.lifequalityapp.R
 import hr.ferit.lifequalityapp.sensing.models.BarometerModel
 import hr.ferit.lifequalityapp.sensing.models.HumiditySensorModel
 import hr.ferit.lifequalityapp.sensing.models.ThermometerModel
-import hr.ferit.lifequalityapp.ui.MainActivity
 import hr.ferit.lifequalityapp.ui.components.NetworkChecker
 import hr.ferit.lifequalityapp.ui.permissions.hasLocationAndRecordAudioPermission
 import kotlinx.coroutines.CoroutineScope
@@ -47,16 +41,16 @@ class AutomaticMeasurementService : Service(), KoinComponent {
     private val handler = Handler(Looper.getMainLooper())
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
     private var initialNotificationDelay = true
+    private var isSuccessful = false
     private var userId: String? = null
-    private var earnedTokens = 0 // update notification for user to see this
+    private var measurementTokens = 0
+    private var earnedTokens = 0
     private lateinit var barometerModel: BarometerModel
     private lateinit var thermometerModel: ThermometerModel
     private lateinit var humiditySensorModel: HumiditySensorModel
     private lateinit var mediaRecorder: MediaRecorder
     private lateinit var locationClient: FusedLocationProviderClient
     private lateinit var outputFile: File
-    private lateinit var intent: Intent
-    private lateinit var pendingIntent: PendingIntent
     private lateinit var notificationManager: NotificationManager
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -72,8 +66,6 @@ class AutomaticMeasurementService : Service(), KoinComponent {
         thermometerModel = get()
         humiditySensorModel = get()
         notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        intent = Intent(this, MainActivity::class.java)
-        pendingIntent = PendingIntent.getActivity(this, 0, intent, FLAG_IMMUTABLE)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -86,7 +78,7 @@ class AutomaticMeasurementService : Service(), KoinComponent {
     }
 
     private fun start() {
-        val notification = createMainNotification()
+        val notification = createMainNotification(applicationContext, earnedTokens)
         startForeground(1, notification)
         collectData()
     }
@@ -98,7 +90,7 @@ class AutomaticMeasurementService : Service(), KoinComponent {
                 initialNotificationDelay = false
             }
             if (!NetworkChecker.isNetworkAvailable(applicationContext)) {
-                Log.d("No Internet", "No Internet connection")
+                showNoInternetNotification(applicationContext, notificationManager)
             } else {
                 if (applicationContext.hasLocationAndRecordAudioPermission()) {
                     val locationManager =
@@ -108,10 +100,10 @@ class AutomaticMeasurementService : Service(), KoinComponent {
                     val isNetworkEnabled =
                         locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
                     if (!isGpsEnabled && !isNetworkEnabled) {
-                        Log.d("GPS is off", "Turn on GPS")
+                        showNoGpsNotification(applicationContext, notificationManager)
                     } else {
                         withContext(Dispatchers.Main) {
-                            showMeasuringNotification()
+                            showMeasuringNotification(applicationContext, notificationManager)
                         }
                         withContext(Dispatchers.IO) {
                             try {
@@ -137,7 +129,7 @@ class AutomaticMeasurementService : Service(), KoinComponent {
                                         averageAmplitude += mediaRecorder.maxAmplitude
                                     }
                                     mediaRecorder.stop()
-                                    earnedTokens += saveAutomaticMeasurement(
+                                    measurementTokens = saveAutomaticMeasurement(
                                         userId = userId,
                                         location = location,
                                         noiseAmplitude = averageAmplitude / 50,
@@ -148,6 +140,8 @@ class AutomaticMeasurementService : Service(), KoinComponent {
                                         pressure = barometerModel.pressure.value,
                                         relativeHumidity = humiditySensorModel.relativeHumidity.value,
                                     )
+                                    earnedTokens += measurementTokens
+                                    isSuccessful = true
                                 } else {
                                     Log.d("Location", "Location is null")
                                 }
@@ -156,10 +150,15 @@ class AutomaticMeasurementService : Service(), KoinComponent {
                             }
                         }
                         withContext(Dispatchers.Main) {
-                            if (isMainNotificationActive()) {
-                                notificationManager.notify(1, createMainNotification())
+                            if (isMainNotificationActive(notificationManager)) {
+                                notificationManager.notify(1, createMainNotification(applicationContext, earnedTokens))
                             }
-                            notificationManager.cancel(2)
+                            if (isSuccessful) {
+                                showMeasuringSuccessNotification(applicationContext, notificationManager, measurementTokens)
+                                isSuccessful = false
+                            } else {
+                                showMeasuringFailureNotification(applicationContext, notificationManager)
+                            }
                         }
                     }
                 } else {
@@ -174,35 +173,8 @@ class AutomaticMeasurementService : Service(), KoinComponent {
         mediaRecorder.release()
         coroutineScope.cancel()
         handler.removeCallbacksAndMessages(null)
+        notificationManager.cancel(2)
         stopSelf()
-    }
-
-    private fun createMainNotification(): Notification {
-        return NotificationCompat.Builder(this, "measurement_channel")
-            .setSmallIcon(R.drawable.ic_launcher_background)
-            .setContentText(applicationContext.resources.getString(R.string.collecting_your_data, earnedTokens))
-            .setContentTitle(applicationContext.resources.getString(R.string.collecting_data))
-            .setContentIntent(pendingIntent)
-            .build()
-    }
-
-    private fun showMeasuringNotification() {
-        val notification = NotificationCompat.Builder(this, "measurement_channel")
-            .setSmallIcon(R.drawable.ic_launcher_background)
-            .setContentTitle(applicationContext.resources.getString(R.string.measurement_running))
-            .setProgress(0, 0, true)
-            .build()
-        notificationManager.notify(2, notification)
-    }
-
-    private fun isMainNotificationActive(): Boolean {
-        val notifications = notificationManager.activeNotifications
-        notifications.forEach { notification ->
-            if (notification.id == 1) {
-                return true
-            }
-        }
-        return false
     }
 
     enum class Actions {

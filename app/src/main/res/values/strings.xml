@@ -31,4 +31,10 @@
     <string name="collecting_your_data">"Periodično se bilježe lokacija, razina buke i očitanja senzora, zarađeno bodova: %1$d"</string>
     <string name="collecting_data">"Automatsko mjerenje pokrenuto"</string>
     <string name="measurement_running">"Mjerenje u tijeku…"</string>
+    <string name="measurement_success">"Mjerenje je provedeno uspješno."</string>
+    <string name="added_tokens">"Zarađeno bodova: %1$d"</string>
+    <string name="measurement_failure">"Došlo je do pogreške prilikom mjerenja."</string>
+    <string name="no_internet">"Kako bi mjerenje bilo uspješno, spojite se na internet."</string>
+    <string name="no_gps">"Kako bi mjerenje bilo uspješno, molimo uključite lokacijske usluge."</string>
+    <string name="no_permission">"Za mjerenje je potrebno odobriti pristup mikrofonu i lokaciji."</string>
 </resources>
