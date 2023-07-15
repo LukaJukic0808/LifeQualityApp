@@ -28,6 +28,7 @@
     <string name="uniqueWorkName">"measure"</string>
     <string name="background_location_access_needed">"Potrebno je dopuštenje za pristup lokaciji cijelo vrijeme."</string>
     <string name="battery">"Funkcionalnost zahtjeva veću potrošnju baterije."</string>
-    <string name="collecting_your_data">"Aplikacija periodično bilježi lokaciju, razinu buke i senzorske podatke"</string>
-    <string name="collecting_data">"Prikupljanje podataka u tijeku"</string>
+    <string name="collecting_your_data">"Periodično se bilježe lokacija, razina buke i očitanja senzora, zarađeno bodova: %1$d"</string>
+    <string name="collecting_data">"Automatsko mjerenje pokrenuto"</string>
+    <string name="measurement_running">"Mjerenje u tijeku…"</string>
 </resources>

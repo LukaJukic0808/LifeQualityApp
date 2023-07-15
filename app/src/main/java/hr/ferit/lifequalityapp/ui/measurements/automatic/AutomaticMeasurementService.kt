@@ -2,6 +2,8 @@ package hr.ferit.lifequalityapp.ui.measurements.automatic
 
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
+import android.app.Notification
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.app.Service
@@ -43,17 +45,19 @@ import java.util.concurrent.TimeUnit
 @SuppressLint("MissingPermission")
 class AutomaticMeasurementService : Service(), KoinComponent {
     private val handler = Handler(Looper.getMainLooper())
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private val coroutineScope = CoroutineScope(Dispatchers.Default)
+    private var initialNotificationDelay = true
+    private var userId: String? = null
+    private var earnedTokens = 0 // update notification for user to see this
     private lateinit var barometerModel: BarometerModel
     private lateinit var thermometerModel: ThermometerModel
     private lateinit var humiditySensorModel: HumiditySensorModel
     private lateinit var mediaRecorder: MediaRecorder
     private lateinit var locationClient: FusedLocationProviderClient
     private lateinit var outputFile: File
-    private var userId: String? = null
-    private var earnedTokens = 0 // update notification for user to see this
     private lateinit var intent: Intent
     private lateinit var pendingIntent: PendingIntent
+    private lateinit var notificationManager: NotificationManager
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -67,6 +71,7 @@ class AutomaticMeasurementService : Service(), KoinComponent {
         barometerModel = get()
         thermometerModel = get()
         humiditySensorModel = get()
+        notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         intent = Intent(this, MainActivity::class.java)
         pendingIntent = PendingIntent.getActivity(this, 0, intent, FLAG_IMMUTABLE)
     }
@@ -81,18 +86,17 @@ class AutomaticMeasurementService : Service(), KoinComponent {
     }
 
     private fun start() {
-        val notification = NotificationCompat.Builder(this, "measurement_channel")
-            .setSmallIcon(R.drawable.ic_launcher_background)
-            .setContentText(applicationContext.resources.getString(R.string.collecting_your_data))
-            .setContentTitle(applicationContext.resources.getString(R.string.collecting_data))
-            .setContentIntent(pendingIntent)
-            .build()
+        val notification = createMainNotification()
         startForeground(1, notification)
         collectData()
     }
 
     private fun collectData() {
         coroutineScope.launch {
+            if (initialNotificationDelay) {
+                delay(10000L)
+                initialNotificationDelay = false
+            }
             if (!NetworkChecker.isNetworkAvailable(applicationContext)) {
                 Log.d("No Internet", "No Internet connection")
             } else {
@@ -106,6 +110,9 @@ class AutomaticMeasurementService : Service(), KoinComponent {
                     if (!isGpsEnabled && !isNetworkEnabled) {
                         Log.d("GPS is off", "Turn on GPS")
                     } else {
+                        withContext(Dispatchers.Main) {
+                            showMeasuringNotification()
+                        }
                         withContext(Dispatchers.IO) {
                             try {
                                 val location = locationClient.getCurrentLocation(
@@ -148,6 +155,12 @@ class AutomaticMeasurementService : Service(), KoinComponent {
                                 Log.d("IOException", "Caught exception: $e")
                             }
                         }
+                        withContext(Dispatchers.Main) {
+                            if (isMainNotificationActive()) {
+                                notificationManager.notify(1, createMainNotification())
+                            }
+                            notificationManager.cancel(2)
+                        }
                     }
                 } else {
                     Log.d("Missing permissions", "Grant all permissions")
@@ -162,6 +175,34 @@ class AutomaticMeasurementService : Service(), KoinComponent {
         coroutineScope.cancel()
         handler.removeCallbacksAndMessages(null)
         stopSelf()
+    }
+
+    private fun createMainNotification(): Notification {
+        return NotificationCompat.Builder(this, "measurement_channel")
+            .setSmallIcon(R.drawable.ic_launcher_background)
+            .setContentText(applicationContext.resources.getString(R.string.collecting_your_data, earnedTokens))
+            .setContentTitle(applicationContext.resources.getString(R.string.collecting_data))
+            .setContentIntent(pendingIntent)
+            .build()
+    }
+
+    private fun showMeasuringNotification() {
+        val notification = NotificationCompat.Builder(this, "measurement_channel")
+            .setSmallIcon(R.drawable.ic_launcher_background)
+            .setContentTitle(applicationContext.resources.getString(R.string.measurement_running))
+            .setProgress(0, 0, true)
+            .build()
+        notificationManager.notify(2, notification)
+    }
+
+    private fun isMainNotificationActive(): Boolean {
+        val notifications = notificationManager.activeNotifications
+        notifications.forEach { notification ->
+            if (notification.id == 1) {
+                return true
+            }
+        }
+        return false
     }
 
     enum class Actions {
