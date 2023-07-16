@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit
 @SuppressLint("MissingPermission")
 class AutomaticMeasurementService : Service(), KoinComponent {
     private val handler = Handler(Looper.getMainLooper())
-    private val coroutineScope = CoroutineScope(Dispatchers.Default)
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
     private var initialNotificationDelay = true
     private var isSuccessful = false
     private var userId: String? = null
@@ -102,9 +102,7 @@ class AutomaticMeasurementService : Service(), KoinComponent {
                     if (!isGpsEnabled && !isNetworkEnabled) {
                         showNoGpsNotification(applicationContext, notificationManager)
                     } else {
-                        withContext(Dispatchers.Main) {
-                            showMeasuringNotification(applicationContext, notificationManager)
-                        }
+                        showMeasuringNotification(applicationContext, notificationManager)
                         withContext(Dispatchers.IO) {
                             try {
                                 val location = locationClient.getCurrentLocation(
@@ -149,16 +147,14 @@ class AutomaticMeasurementService : Service(), KoinComponent {
                                 Log.d("IOException", "Caught exception: $e")
                             }
                         }
-                        withContext(Dispatchers.Main) {
-                            if (isMainNotificationActive(notificationManager)) {
-                                notificationManager.notify(1, createMainNotification(applicationContext, earnedTokens))
-                            }
-                            if (isSuccessful) {
-                                showMeasuringSuccessNotification(applicationContext, notificationManager, measurementTokens)
-                                isSuccessful = false
-                            } else {
-                                showMeasuringFailureNotification(applicationContext, notificationManager)
-                            }
+                        if (isMainNotificationActive(notificationManager)) {
+                            notificationManager.notify(1, createMainNotification(applicationContext, earnedTokens))
+                        }
+                        if (isSuccessful) {
+                            showMeasuringSuccessNotification(applicationContext, notificationManager, measurementTokens)
+                            isSuccessful = false
+                        } else {
+                            showMeasuringFailureNotification(applicationContext, notificationManager)
                         }
                     }
                 } else {

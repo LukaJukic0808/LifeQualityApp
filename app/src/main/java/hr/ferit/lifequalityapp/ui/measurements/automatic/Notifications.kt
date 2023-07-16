@@ -13,7 +13,7 @@ fun createMainNotification(context: Context, earnedTokens: Int): Notification {
     val intent = Intent(context, MainActivity::class.java)
     val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
     return NotificationCompat.Builder(context, "measurement_channel")
-        .setSmallIcon(R.drawable.ic_launcher_background)
+        .setSmallIcon(R.mipmap.ic_launcher_round)
         .setContentText(context.resources.getString(R.string.collecting_your_data, earnedTokens))
         .setContentTitle(context.resources.getString(R.string.collecting_data))
         .setContentIntent(pendingIntent)
@@ -22,7 +22,7 @@ fun createMainNotification(context: Context, earnedTokens: Int): Notification {
 
 fun showNoInternetNotification(context: Context, notificationManager: NotificationManager) {
     val notification = NotificationCompat.Builder(context, "measurement_channel")
-        .setSmallIcon(R.drawable.ic_launcher_background)
+        .setSmallIcon(R.mipmap.ic_launcher_round)
         .setContentTitle(context.resources.getString(R.string.measurement_failure))
         .setContentText(context.resources.getString(R.string.no_internet))
         .build()
@@ -31,7 +31,7 @@ fun showNoInternetNotification(context: Context, notificationManager: Notificati
 
 fun showNoGpsNotification(context: Context, notificationManager: NotificationManager) {
     val notification = NotificationCompat.Builder(context, "measurement_channel")
-        .setSmallIcon(R.drawable.ic_launcher_background)
+        .setSmallIcon(R.mipmap.ic_launcher_round)
         .setContentTitle(context.resources.getString(R.string.measurement_failure))
         .setContentText(context.resources.getString(R.string.no_gps))
         .build()
@@ -40,7 +40,7 @@ fun showNoGpsNotification(context: Context, notificationManager: NotificationMan
 
 fun showMeasuringNotification(context: Context, notificationManager: NotificationManager) {
     val notification = NotificationCompat.Builder(context, "measurement_channel")
-        .setSmallIcon(R.drawable.ic_launcher_background)
+        .setSmallIcon(R.mipmap.ic_launcher_round)
         .setContentTitle(context.resources.getString(R.string.measurement_running))
         .setProgress(0, 0, true)
         .build()
@@ -49,7 +49,7 @@ fun showMeasuringNotification(context: Context, notificationManager: Notificatio
 
 fun showMeasuringSuccessNotification(context: Context, notificationManager: NotificationManager, measurementTokens: Int) {
     val notification = NotificationCompat.Builder(context, "measurement_channel")
-        .setSmallIcon(R.drawable.ic_launcher_background)
+        .setSmallIcon(R.mipmap.ic_launcher_round)
         .setContentTitle(context.resources.getString(R.string.measurement_success))
         .setContentText(context.resources.getString(R.string.added_tokens, measurementTokens))
         .setProgress(0, 0, false)
@@ -59,7 +59,7 @@ fun showMeasuringSuccessNotification(context: Context, notificationManager: Noti
 
 fun showMeasuringFailureNotification(context: Context, notificationManager: NotificationManager) {
     val notification = NotificationCompat.Builder(context, "measurement_channel")
-        .setSmallIcon(R.drawable.ic_launcher_background)
+        .setSmallIcon(R.mipmap.ic_launcher_round)
         .setContentTitle(context.resources.getString(R.string.measurement_failure))
         .setContentText(context.resources.getString(R.string.location_unreachable))
         .build()
