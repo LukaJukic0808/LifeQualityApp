@@ -161,7 +161,7 @@ class AutomaticMeasurementService : Service(), KoinComponent {
                     Log.d("Missing permissions", "Grant all permissions")
                 }
             }
-            handler.postDelayed(::collectData, TimeUnit.MINUTES.toMillis(1))
+            handler.postDelayed(::collectData, TimeUnit.MINUTES.toMillis(15))
         }
     }
 
