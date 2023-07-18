@@ -17,5 +17,4 @@ class ServiceToggleViewModel(context: Context) : ViewModel() {
     fun toggleService() {
         isServiceRunning = !isServiceRunning
     }
-
 }
